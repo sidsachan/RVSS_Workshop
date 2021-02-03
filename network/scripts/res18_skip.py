@@ -30,6 +30,8 @@ class Resnet18Skip(nn.Module):
             nn.Conv2d(in_channels=256, out_channels=128, kernel_size=1),
             nn.ReLU())
         
+        self.mpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        
         self.lateral_conv2 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=1),
             nn.ReLU())
@@ -53,21 +55,21 @@ class Resnet18Skip(nn.Module):
         return upsampled_map + high_res_map
 
     ###################################################################
-    # def forward(self, img):
-    #     # Encoder
-    #     c1 = self.res18_backbone(img)
-    #     c2 =  # 48 x 64
-    #     c3 =  # 24 x 32
-    #     c4 =  # 12 x 16
-    #     c5 =  # 6 x 8
-    #     # Decoder
-    #     p5 =
-    #     p4 =  # 12 x 16
-    #     p3 =  # 24 x 32
-    #     p2 =  # 48 x 64
-    #     p2_2x = nn.UpsamplingBilinear2d(scale_factor=2)(p2)
-    #     out = 
-    #     return out
+    def forward(self, img):
+        # Encoder
+        c1 = self.res18_backbone(img)
+        c2 = self.conv2_x(c1) # 48 x 64
+        c3 = self.conv3_x(c2) # 24 x 32
+        c4 = self.conv4_x(c3) # 12 x 16
+        c5 = self.conv5_x(c4) # 6 x 8
+        # Decoder
+        p5 = self.top_conv(c5)
+        p4 = self.upsample_add(p5, self.lateral_conv1(c4))  # 12 x 16
+        p3 = self.upsample_add(p4, self.lateral_conv2(c3)) # 24 x 32
+        p2 = self.upsample_add(p3, self.lateral_conv3(c2)) # 48 x 64
+        p2_2x = nn.UpsamplingBilinear2d(scale_factor=2)(p2)
+        out = self.segmentation_conv(p2_2x)
+        return out
     ###################################################################
 
     # Define loss function here:
