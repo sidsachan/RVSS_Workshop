@@ -26,6 +26,13 @@ from network.scripts.detector import Detector
 
 class Operate:
     def __init__(self, args):
+        self.folder = 'dataset/'
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
+        else:
+            os.rmdir(self.folder)
+            os.makedirs(self.folder)
+        
         # Initialise data parameters
         if args.play_data:
             self.pibot = dh.DatasetPlayer("record")
@@ -43,13 +50,15 @@ class Operate:
         self.command = {'motion':[0, 0], 
                         'inference': False,
                         'output': False,
-                        'save_inference': False}
+                        'save_inference': False,
+                        'save_image': False}
         self.quit = False
         self.pred_fname = ''
         self.request_recover_robot = False
         self.file_output = None
         self.ekf_on = False
         self.double_reset_comfirm = 0
+        self.image_id = 0
         self.notification = 'Press ENTER to start SLAM'
         #
         self.count_down = 300
@@ -108,7 +117,18 @@ class Operate:
             self.command['inference'] = False
             self.file_output = (self.detector_output, self.ekf)
             self.notification = f'{len(np.unique(self.detector_output))-1} fruit type(s) detected'
-            
+
+    def save_image(self):
+        
+        if self.command['save_image']:
+            image = self.pibot.get_image()
+            filename = "dataset/dataset_{}.png".format(self.image_id)
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(filename, image)
+            self.image_id += 1
+            self.command['save_image'] = False
+
+
     def init_ekf(self, datadir, ip):
         fileK = "{}intrinsic.txt".format(datadir)
         camera_matrix = np.loadtxt(fileK, delimiter=',')
@@ -203,6 +223,8 @@ class Operate:
                 self.command['motion'] = [0, 0]
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
                 self.command['inference'] = True
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_i:
+                self.command['save_image'] = True
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 self.command['output'] = True
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:
@@ -292,6 +314,7 @@ if __name__ == "__main__":
         drive_meas = operate.control()
         operate.update_slam(drive_meas)
         operate.record_data()
+        operate.save_image()
         operate.detect_fruit()
         # visualise
         operate.draw(canvas)
