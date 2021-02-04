@@ -40,7 +40,7 @@ def images_to_single_fruit_centroid(fruit_number, image_path):
     # plt.imshow(fruit.image)
     # plt.annotate(str(fruit_number), np.array(blobs[0].centroid).reshape(2,))
     # plt.show()
-    assert len(blobs) == 1, "Must have only 1 fruit of the given fruit type in this photo"
+    # assert len(blobs) == 1, "Must have only 1 fruit of the given fruit type in this photo"
     return np.array(blobs[0].centroid).reshape(2,) # (2,)
 
 def get_triangulation_params(base_dir):
