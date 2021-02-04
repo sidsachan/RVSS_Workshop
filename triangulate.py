@@ -99,9 +99,9 @@ if __name__ == "__main__":
     # camera_poses = np.ones((3,10)) * 3
     # camera_matrix = np.ones((3,3))/2
     
-    fileK = "{}intrinsic.txt".format('../calibration/param/')
+    fileK = "{}intrinsic.txt".format('./calibration/param/')
     camera_matrix = np.loadtxt(fileK, delimiter=',')
-    run_triangulation('../', camera_matrix)
+    run_triangulation('./', camera_matrix)
         
 
     # print(P)
